@@ -78,7 +78,7 @@ with aba1:
         ax.axhline(0, color='red', linestyle='--', alpha=0.5)
         fig.colorbar(scatter, ax=ax, label="Dependência Percecionada de IA")
         st.pyplot(fig)
-        st.caption("O eixo horizontal mostra o uso de IA e o vertical se a nota subiu (positivo) ou desceu (negativo).")
+        st.caption("Cada ponto representa um aluno. Avalie se o uso excessivo de IA (pontos mais à direita) se traduz em notas maiores (acima da linha vermelha) ou apenas em maior dependência (cores mais claras).")
 
     with col_g2:
         st.write("#### Variação de Nota por Caso de Uso Principal")
@@ -89,6 +89,7 @@ with aba1:
         ax.set_ylabel("Caso de Uso Principal")
         ax.axvline(0, color='gray', linestyle='--')
         st.pyplot(fig)
+        st.caption("Compara o ganho médio de nota entre diferentes usos da IA. Barras mais longas à direita indicam as estratégias de estudo com IA que trazem melhores resultados.")
 
 with aba2:
     col_g3, col_g4 = st.columns(2)
@@ -102,7 +103,7 @@ with aba2:
         ax.set_xlabel("Política da Instituição face à IA")
         plt.xticks(rotation=45, ha='right')
         st.pyplot(fig)
-        st.caption("O grafico demostra...")
+        st.caption("Mostra a média de ansiedade dos alunos agrupada pelas regras da universidade. Barras mais altas indicam ambientes de avaliação mais estressantes.")
 
     with col_g4:
         st.write("#### Distribuição do Risco de Burnout por Perfil de Utilizador")
@@ -115,7 +116,7 @@ with aba2:
         plt.xticks(rotation=0)
         ax.legend(title="Risco de Burnout")
         st.pyplot(fig)
-        st.caption("O grafico demostra...")
+        st.caption("Compara a proporção do risco de Burnout (Baixo, Médio, Alto) entre os alunos. Observe se a faixa vermelha (Risco Alto) é maior em algum perfil de uso.")
 
 st.markdown("---")
 
