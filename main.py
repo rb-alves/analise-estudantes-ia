@@ -3,128 +3,415 @@ import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Impacto da IA na educação", layout="wide")
+st.set_page_config(
+    page_title="Impacto da IA na Educação",
+    layout="wide"
+)
 
-# Carrega dados
+
 @st.cache_data
 def carregar_dados(caminho_csv):
-    df = pd.read_csv(caminho_csv)
 
-    print(df.info())
+    df = pd.read_csv(caminho_csv)
 
     df = df.drop_duplicates()
 
     df = df.fillna(df.median(numeric_only=True))
 
-    df["Variacao_Nota"] = df["Post_Semester_GPA"] - df["Pre_Semester_GPA"]
+    df["Variacao_Nota"] = (
+        df["Post_Semester_GPA"] -
+        df["Pre_Semester_GPA"]
+    )
 
     media_horas = df["Weekly_GenAI_Hours"].mean()
 
-    df['Perfil_Utilizador'] = np.where(df['Weekly_GenAI_Hours'] > media_horas, 'Utilizador Intensivo', 'Utilizador Regular')
+    df["Perfil_Utilizador"] = np.where(
+        df["Weekly_GenAI_Hours"] > media_horas,
+        "Usuário Intensivo",
+        "Usuário Moderado"
+    )
+
+
+    # Traduções
+    traducao_cursos = {
+        "Humanities": "Humanas",
+        "Medical": "Medicina",
+        "Engineering": "Engenharia",
+        "Business": "Administração",
+        "Computer Science": "Ciência da Computação",
+        "Natural Sciences": "Ciências Naturais"
+    }
+
+    traducao_uso = {
+        "Summarizing_Reading": "Resumo de Leituras",
+        "Ideation": "Geração de Ideias",
+        "Copywriting/Drafting": "Produção de Textos",
+        "Debugging/Troubleshooting": "Correção de Código",
+        "Direct_Answer_Generation": "Geração de Respostas"
+    }
+
+    traducao_politica = {
+        "Strict_Ban": "Proibição Total",
+        "Allowed_With_Citation": "Permitido com Citação",
+        "Actively_Encouraged": "Incentivado"
+    }
+
+    traducao_burnout = {
+        "Low": "Baixo",
+        "Medium": "Médio",
+        "High": "Alto"
+    }
+
+    df["Major_Category"] = df["Major_Category"].replace(
+        traducao_cursos
+    )
+
+    df["Primary_Use_Case"] = df["Primary_Use_Case"].replace(
+        traducao_uso
+    )
+
+    df["Institutional_Policy"] = df["Institutional_Policy"].replace(
+        traducao_politica
+    )
+
+    df["Burnout_Risk_Level"] = df["Burnout_Risk_Level"].replace(
+        traducao_burnout
+    )
 
     return df
 
+
 df = carregar_dados("ai_student_impact_dataset.csv")
 
-# Cabecalho
-st.title("O Impacto da IA Generativa na Vida Académica")
+
+# CABEÇALHO
+st.title("O Impacto da Inteligência Artificial Generativa na Vida Acadêmica")
+
 st.markdown("""
-### **Definição do Problema**
-Este projeto analisa como o uso de ferramentas de Inteligência Artificial Generativa afeta o desempenho académico (notas), 
-o nível de ansiedade e o risco de esgotamento mental (Burnout) dos estudantes universitários de diferentes áreas de conhecimento.
+### Problema de Pesquisa
+
+**Qual é o verdadeiro impacto do uso de Inteligência Artificial Generativa
+no desempenho acadêmico e na saúde mental dos estudantes universitários?**
+
+Para responder essa questão, foram analisados dados sobre desempenho acadêmico,
+hábitos de estudo, dependência da IA, ansiedade e risco de burnout.
 """)
 
-# Sidebar e Filtros
+
+# FILTROS
 st.sidebar.header("Filtros")
 
 cursos_selecionados = st.sidebar.multiselect(
-    "Selecione as Áreas de Estudo:",
-    options=df['Major_Category'].unique().tolist(),
-    default=df['Major_Category'].unique().tolist()
+    "Selecione as Áreas de Estudo",
+    options=sorted(df["Major_Category"].unique()),
+    default=sorted(df["Major_Category"].unique())
 )
 
-df_filtrado = df[df["Major_Category"].isin(cursos_selecionados)]
+df_filtrado = df[
+    df["Major_Category"].isin(cursos_selecionados)
+]
 
 
-# dados gerais
-st.subheader("Panorama Geral dos Estudantes Selecionados")
+# INDICADORES
+st.subheader("Panorama Geral")
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total de Alunos Analisados", f"{len(df_filtrado):,}")
-col2.metric("Média de Horas IA/Semana", f"{df_filtrado['Weekly_GenAI_Hours'].mean():.2f}h")
-col3.metric("Horas de Estudo Tradicional", f"{df_filtrado['Traditional_Study_Hours'].mean():.2f}h")
-col4.metric("Variação Média da Nota", f"{df_filtrado['Variacao_Nota'].mean():+.3f}")
+
+col1.metric(
+    "Total de Alunos",
+    f"{len(df_filtrado):,}"
+)
+
+col2.metric(
+    "Média Horas IA/Semana",
+    f"{df_filtrado['Weekly_GenAI_Hours'].mean():.2f}h"
+)
+
+col3.metric(
+    "Horas de Estudo Tradicional",
+    f"{df_filtrado['Traditional_Study_Hours'].mean():.2f}h"
+)
+
+col4.metric(
+    "Variação Média da Nota",
+    f"{df_filtrado['Variacao_Nota'].mean():+.3f}"
+)
 
 st.markdown("---")
 
-st.subheader("Análise e Visualizações")
-aba1, aba2 = st.tabs(["Impacto Académico", "Saúde Mental e Comportamento"])
 
+# ABAS
+aba1, aba2 = st.tabs([
+    "Impacto Acadêmico",
+    "Saúde Mental"
+])
+
+
+# ABA 1
 with aba1:
+
     col_g1, col_g2 = st.columns(2)
+
     
     with col_g1:
-        st.write("#### Uso de IA vs. Desempenho (Variação da Nota)")
+
+        st.subheader("Uso de IA x Desempenho Acadêmico")
+
+        st.markdown("""
+        **Alunos que utilizam mais IA realmente melhoram suas notas ou apenas desenvolvem maior dependência da ferramenta?**
+        """)
+
         fig, ax = plt.subplots(figsize=(6, 4))
+
         scatter = ax.scatter(
-            df_filtrado['Weekly_GenAI_Hours'], 
-            df_filtrado['Variacao_Nota'], 
-            alpha=0.5, 
-            c=df_filtrado['Perceived_AI_Dependency'], 
-            cmap='viridis'
+            df_filtrado["Weekly_GenAI_Hours"],
+            df_filtrado["Variacao_Nota"],
+            c=df_filtrado["Perceived_AI_Dependency"],
+            cmap="viridis",
+            alpha=0.5
         )
-        ax.set_xlabel("Horas Semanais de IA Generativa")
-        ax.set_ylabel("Variação da Nota (Pós - Pré Semestre)")
-        ax.axhline(0, color='red', linestyle='--', alpha=0.5)
-        fig.colorbar(scatter, ax=ax, label="Dependência Percecionada de IA")
+
+        ax.axhline(
+            0,
+            color="red",
+            linestyle="--"
+        )
+
+        ax.set_xlabel(
+            "Horas Semanais de Uso de IA"
+        )
+
+        ax.set_ylabel(
+            "Variação da Nota"
+        )
+
+        fig.colorbar(
+            scatter,
+            ax=ax,
+            label="Dependência Percebida"
+        )
+
         st.pyplot(fig)
-        st.caption("Cada ponto representa um aluno. Avalie se o uso excessivo de IA (pontos mais à direita) se traduz em notas maiores (acima da linha vermelha) ou apenas em maior dependência (cores mais claras).")
+
+        correlacao_nota = (
+            df_filtrado["Weekly_GenAI_Hours"]
+            .corr(df_filtrado["Variacao_Nota"])
+        )
+
+        correlacao_dependencia = (
+            df_filtrado["Weekly_GenAI_Hours"]
+            .corr(df_filtrado["Perceived_AI_Dependency"])
+        )
+
+
+        st.markdown(f"""
+### Análise
+
+A correlação entre horas de uso da IA e variação das notas foi de
+**{correlacao_nota:.2f}**, indicando uma relação fraca entre essas variáveis.
+
+Já a correlação entre horas de uso e dependência percebida foi de
+**{correlacao_dependencia:.2f}**, indicando uma associação muito mais forte.
+""")
+
+        st.success("""
+Conclusão: O uso intensivo de IA não apresentou relação significativa
+com melhora das notas, mas demonstrou associação com maior dependência
+da ferramenta.
+""")
+
+    
 
     with col_g2:
-        st.write("#### Variação de Nota por Caso de Uso Principal")
-        fig, ax = plt.subplots(figsize=(6, 4))
-        df_agrupado_uso = df_filtrado.groupby('Primary_Use_Case')['Variacao_Nota'].mean().sort_values()
-        df_agrupado_uso.plot(kind='barh', ax=ax, color='skyblue')
-        ax.set_xlabel("Variação Média da Nota")
-        ax.set_ylabel("Caso de Uso Principal")
-        ax.axvline(0, color='gray', linestyle='--')
-        st.pyplot(fig)
-        st.caption("Compara o ganho médio de nota entre diferentes usos da IA. Barras mais longas à direita indicam as estratégias de estudo com IA que trazem melhores resultados.")
 
+        st.subheader("Variação da Nota por Tipo de Uso")
+        st.markdown("""
+        **Quais formas de utilização da IA geram os melhores resultados acadêmicos?**
+        """)
+
+        fig, ax = plt.subplots(figsize=(6, 4))
+
+        df_agrupado_uso = (
+            df_filtrado
+            .groupby("Primary_Use_Case")["Variacao_Nota"]
+            .mean()
+            .sort_values()
+        )
+
+        df_agrupado_uso.plot(
+            kind="barh",
+            ax=ax
+        )
+
+        ax.axvline(
+            0,
+            linestyle="--"
+        )
+
+        ax.set_xlabel(
+            "Variação Média da Nota"
+        )
+
+        ax.set_ylabel(
+            "Uso Principal da IA"
+        )
+
+        st.pyplot(fig)
+
+        melhor_uso = df_agrupado_uso.idxmax()
+        melhor_valor = df_agrupado_uso.max()
+
+
+        st.markdown(f"""
+### Análise
+
+A estratégia que apresentou maior ganho médio de desempenho foi:
+
+**{melhor_uso}**
+
+com uma variação média de **{melhor_valor:.3f} pontos**.
+""")
+
+        st.success(f"""
+Conclusão: O uso da IA para **{melhor_uso.lower()}**
+foi o que apresentou melhor desempenho acadêmico médio.
+""")
+
+
+# ABA 2
 with aba2:
+
     col_g3, col_g4 = st.columns(2)
+
     
     with col_g3:
-        st.write("#### Nível de Ansiedade vs. Política Institucional")
+
+        st.subheader("Ansiedade e Política Institucional")
+        st.markdown("""
+        **Como as políticas institucionais relacionadas ao uso da IA influenciam a ansiedade dos estudantes?**
+        """)
+
+
         fig, ax = plt.subplots(figsize=(6, 4))
-        df_politica = df_filtrado.groupby('Institutional_Policy')['Anxiety_Level_During_Exams'].mean().sort_values()
-        df_politica.plot(kind='bar', ax=ax, color='salmon')
-        ax.set_ylabel("Média do Nível de Ansiedade nos Exames")
-        ax.set_xlabel("Política da Instituição face à IA")
-        plt.xticks(rotation=45, ha='right')
+
+        df_politica = (
+            df_filtrado
+            .groupby("Institutional_Policy")[
+                "Anxiety_Level_During_Exams"
+            ]
+            .mean()
+            .sort_values()
+        )
+
+        df_politica.plot(
+            kind="bar",
+            ax=ax
+        )
+
+        ax.set_ylabel(
+            "Ansiedade Média"
+        )
+
+        plt.xticks(rotation=20)
+
         st.pyplot(fig)
-        st.caption("Mostra a média de ansiedade dos alunos agrupada pelas regras da universidade. Barras mais altas indicam ambientes de avaliação mais estressantes.")
+
+        maior_ansiedade = df_politica.idxmax()
+        valor_ansiedade = df_politica.max()
+
+
+        st.markdown(f"""
+### Análise
+
+A política que apresentou maior nível médio de ansiedade foi:
+
+**{maior_ansiedade}**
+
+com média de **{valor_ansiedade:.2f} pontos**.
+""")
+
+        st.success("""
+Conclusão: Instituições com políticas mais restritivas
+tendem a apresentar níveis mais elevados de ansiedade
+entre os estudantes.
+""")
+
+    
 
     with col_g4:
-        st.write("#### Distribuição do Risco de Burnout por Perfil de Utilizador")
-        fig, ax = plt.subplots(figsize=(6, 4))
-        df_burnout = pd.crosstab(df_filtrado['Perfil_Utilizador'], df_filtrado['Burnout_Risk_Level'], normalize='index') * 100
-        df_burnout = df_burnout[['Low', 'Medium', 'High']]
-        df_burnout.plot(kind='bar', stacked=True, ax=ax, color=['#A2E8DD', '#FBC15E', '#FA6E59'])
-        ax.set_ylabel("Percentagem (%)")
-        ax.set_xlabel("Perfil de Utilizador de IA")
-        plt.xticks(rotation=0)
-        ax.legend(title="Risco de Burnout")
-        st.pyplot(fig)
-        st.caption("Compara a proporção do risco de Burnout (Baixo, Médio, Alto) entre os alunos. Observe se a faixa vermelha (Risco Alto) é maior em algum perfil de uso.")
 
+        st.subheader("Risco de Burnout por Perfil")
+        st.markdown("""
+        **O uso intensivo de IA está associado a um maior risco de burnout?**
+        """)
+
+        fig, ax = plt.subplots(figsize=(6, 4))
+
+        df_burnout = (
+            pd.crosstab(
+                df_filtrado["Perfil_Utilizador"],
+                df_filtrado["Burnout_Risk_Level"],
+                normalize="index"
+            ) * 100
+        )
+
+        ordem = ["Baixo", "Médio", "Alto"]
+
+        df_burnout = df_burnout[ordem]
+
+        df_burnout.plot(
+            kind="bar",
+            stacked=True,
+            ax=ax
+        )
+
+        ax.set_ylabel("Percentual (%)")
+
+        plt.xticks(rotation=0)
+
+        st.pyplot(fig)
+
+        alto_intensivo = (
+            df_burnout.loc["Usuário Intensivo", "Alto"]
+            if "Usuário Intensivo" in df_burnout.index
+            else 0
+        )
+
+        alto_moderado = (
+            df_burnout.loc["Usuário Moderado", "Alto"]
+            if "Usuário Moderado" in df_burnout.index
+            else 0
+        )
+
+        st.markdown(f"""
+### Análise
+
+Alto risco de burnout:
+
+- Usuários Intensivos: **{alto_intensivo:.1f}%**
+- Usuários Moderados: **{alto_moderado:.1f}%**
+""")
+
+        st.success("""
+Conclusão: Os usuários intensivos apresentam uma
+proporção significativamente maior de estudantes
+com alto risco de burnout.
+""")
+
+
+# CONCLUSÃO 
 st.markdown("---")
 
-# --- CONCLUSÃO ---
-st.subheader("Conclusão e Resumo Executivo")
+st.header("Conclusão Geral")
+
 st.markdown("""
-Com base nos dados analisados, podemos inferir que:
-1. **Desempenho Académico**: Os alunos que utilizam a IA de forma direcionada tendem a apresentar evolução positiva nas notas. No entanto, os **Utilizadores Intensivos** podem acabar por associar o excesso de horas a uma maior dependência, estagnando o crescimento da nota.
-2. **Saúde Mental**: Políticas universitárias severas de proibição mostram uma forte correlação com níveis elevados de ansiedade nos exames, possivelmente devido ao medo de punições.
-3. **Recomendação Final**: Sugere-se que as instituições adotem posturas de orientação e permissão ética (com citação), ajudando os estudantes a utilizarem estas ferramentas como complemento ao estudo tradicional, mitigando assim o risco de esgotamento mental (*Burnout*).
+### Resposta à Pergunta Principal
+
+A Inteligência Artificial Generativa pode trazer benefícios acadêmicos quando utilizada como ferramenta de apoio ao aprendizado, especialmente em atividades de resolução de problemas e construção do conhecimento.
+
+Entretanto, o aumento das horas de utilização não apresentou relação significativa com a melhoria das notas. Em contrapartida, observou-se associação entre uso intensivo e maior dependência da ferramenta.
+
+Os resultados também indicam que políticas institucionais excessivamente restritivas podem estar associadas a maiores níveis de ansiedade, enquanto usuários intensivos apresentaram maior incidência de risco elevado de burnout.
+
+Portanto, os dados sugerem que o uso equilibrado e orientado da IA tende a produzir melhores resultados acadêmicos e psicológicos do que seu uso excessivo ou sua proibição total.
 """)
