@@ -150,7 +150,7 @@ aba1, aba2 = st.tabs([
 # ABA 1
 with aba1:
 
-    col_g1, col_g2 = st.columns(2) 
+    col_g1, col_g2 = st.columns(2)
 
     
     with col_g1:
@@ -161,50 +161,43 @@ with aba1:
         **Alunos que utilizam mais IA realmente melhoram suas notas ou apenas desenvolvem maior dependência da ferramenta?**
         """)
 
-        fig, ax = plt.subplots(figsize=(6, 4)) # 1. Cria a tela vazia
+        fig, ax = plt.subplots(figsize=(6, 4))
 
-        scatter = ax.scatter(                  # 2. Desenha as bolinhas (dispersão)
-            df_filtrado["Weekly_GenAI_Hours"], # Eixo X: horas de IA
-            df_filtrado["Variacao_Nota"],      # Eixo Y: variação da nota
-            c=df_filtrado["Perceived_AI_Dependency"], # 'c' define a COR com base na dependência
-            cmap="viridis",                    # Paleta de cores (do roxo ao amarelo)
-            alpha=0.5                          # Transparência das bolinhas para não cobrirem umas às outras
+        scatter = ax.scatter(
+            df_filtrado["Weekly_GenAI_Hours"],
+            df_filtrado["Variacao_Nota"],
+            c=df_filtrado["Perceived_AI_Dependency"],
+            cmap="viridis",
+            alpha=0.5
         )
 
-        # 3. Desenha uma linha Horizontal (h) no ponto 0, vermelha e tracejada
-        ax.axhline( 
+        ax.axhline(
             0,
             color="red",
             linestyle="--"
         )
 
-        # 4. Dá nome ao eixo X
         ax.set_xlabel(
             "Horas Semanais de Uso de IA"
         )
 
-        # 5. Dá nome ao eixo Y
         ax.set_ylabel(
             "Variação da Nota"
         )
 
-        # 6. Cria a barra de legenda lateral
         fig.colorbar(
             scatter,
             ax=ax,
             label="Dependência Percebida"
         )
 
-        # 7. Mostra o gráfico na tela do Streamlit
         st.pyplot(fig)
 
-        # Correlação usada nota usada texto
         correlacao_nota = (
             df_filtrado["Weekly_GenAI_Hours"]
             .corr(df_filtrado["Variacao_Nota"])
         )
-        
-        # Correlação dependecia usada texto
+
         correlacao_dependencia = (
             df_filtrado["Weekly_GenAI_Hours"]
             .corr(df_filtrado["Perceived_AI_Dependency"])
@@ -236,27 +229,35 @@ da ferramenta.
         **Quais formas de utilização da IA geram os melhores resultados acadêmicos?**
         """)
 
-        fig, ax = plt.subplots(figsize=(6, 4)) # 1. Cria a tela vazia
+        fig, ax = plt.subplots(figsize=(6, 4))
 
-        df_agrupado_uso = (                    # 2. Preparação dos dados:
+        df_agrupado_uso = (
             df_filtrado
-            .groupby("Primary_Use_Case")["Variacao_Nota"] # Agrupa pelo tipo de uso e pega as notas
-            .mean()                            # Calcula a média de cada tipo de uso
-            .sort_values()                     # Ordena do menor para o maior (para a barra crescer para cima)
+            .groupby("Primary_Use_Case")["Variacao_Nota"]
+            .mean()
+            .sort_values()
         )
 
-        df_agrupado_uso.plot(                  # 3. O Pandas desenha o gráfico
-            kind="barh",                       # 'barh' significa Barras Horizontais (Horizontal Bar)
-            ax=ax                              # Diz para o Pandas desenhar dentro da tela 'ax' que criamos
+        df_agrupado_uso.plot(
+            kind="barh",
+            ax=ax
         )
 
-        ax.axvline(0, linestyle="--")          # 4. Desenha uma linha Vertical (v) no ponto 0 (tracejada)
-        ax.set_xlabel("Variação Média da Nota") # 5. Dá nome ao eixo X
-        ax.set_ylabel("Uso Principal da IA")    # 6. Dá nome ao eixo Y
+        ax.axvline(
+            0,
+            linestyle="--"
+        )
 
-        st.pyplot(fig)  # 7. Mostra o gráfico no Streamlit
+        ax.set_xlabel(
+            "Variação Média da Nota"
+        )
 
-        # valores usado no texto
+        ax.set_ylabel(
+            "Uso Principal da IA"
+        )
+
+        st.pyplot(fig)
+
         melhor_uso = df_agrupado_uso.idxmax()
         melhor_valor = df_agrupado_uso.max()
 
@@ -291,25 +292,30 @@ with aba2:
         """)
 
 
-        fig, ax = plt.subplots(figsize=(6, 4)) # 1. Cria a tela vazia
+        fig, ax = plt.subplots(figsize=(6, 4))
 
-        df_politica = (                        # 2. Preparação dos dados:
+        df_politica = (
             df_filtrado
-            .groupby("Institutional_Policy")["Anxiety_Level_During_Exams"] # Agrupa por política e pega a ansiedade
-            .mean()                            # Calcula a média de ansiedade por grupo
-            .sort_values()                     # Ordena do menor para o maior
+            .groupby("Institutional_Policy")[
+                "Anxiety_Level_During_Exams"
+            ]
+            .mean()
+            .sort_values()
         )
 
-        df_politica.plot(                      # 3. O Pandas desenha o gráfico
-            kind="bar",                        # 'bar' (sem o 'h') cria barras Verticais tradicionais
-            ax=ax                              # Desenha na nossa tela 'ax'
+        df_politica.plot(
+            kind="bar",
+            ax=ax
         )
 
-        ax.set_ylabel("Ansiedade Média")       # 4. Dá nome ao eixo Y
-        plt.xticks(rotation=20)                # 5. Inclina os textos da base em 20 graus para não embolarem
-        st.pyplot(fig)                         # 6. Mostra o gráfico no Streamlit
+        ax.set_ylabel(
+            "Ansiedade Média"
+        )
 
-        # valores usados no texto
+        plt.xticks(rotation=20)
+
+        st.pyplot(fig)
+
         maior_ansiedade = df_politica.idxmax()
         valor_ansiedade = df_politica.max()
 
@@ -339,32 +345,32 @@ entre os estudantes.
         **O uso intensivo de IA está associado a um maior risco de burnout?**
         """)
 
-        fig, ax = plt.subplots(figsize=(6, 4)) # 1. Cria a tela vazia
+        fig, ax = plt.subplots(figsize=(6, 4))
 
-        df_burnout = (                         # 2. Cria uma tabela de cruzamento (Tabela de Contingência)
+        df_burnout = (
             pd.crosstab(
-                df_filtrado["Perfil_Utilizador"], # Linhas da tabela
-                df_filtrado["Burnout_Risk_Level"],# Colunas da tabela
-                normalize="index"              # 'normalize="index"' faz o cálculo em porcentagem por linha (soma 100%)
-            ) * 100                            # Multiplica por 100 para transformar 0.55 em 55%
+                df_filtrado["Perfil_Utilizador"],
+                df_filtrado["Burnout_Risk_Level"],
+                normalize="index"
+            ) * 100
         )
 
-        ordem = ["Baixo", "Médio", "Alto"]     
-        df_burnout = df_burnout[ordem]          # 3. Garante que as cores sigam a ordem lógica (Baixo na base, Alto no topo)
+        ordem = ["Baixo", "Médio", "Alto"]
 
-        df_burnout.plot(                       # 4. Desenha o gráfico
-            kind="bar",                        # Gráfico de barras verticais
-            stacked=True,                      # 'stacked=True' EMPILHA as barras uma em cima da outra
-            ax=ax                              # Desenha na nossa tela 'ax'
+        df_burnout = df_burnout[ordem]
+
+        df_burnout.plot(
+            kind="bar",
+            stacked=True,
+            ax=ax
         )
 
-        ax.set_ylabel("Percentual (%)")        # 5. Dá nome ao eixo Y
-        plt.xticks(rotation=0)                 # 6. Mantém o texto da base reto (0 graus)
+        ax.set_ylabel("Percentual (%)")
 
-        # 7. Mostra o gráfico no Streamlit
+        plt.xticks(rotation=0)
+
         st.pyplot(fig)
 
-        # valores usados no texto
         alto_intensivo = (
             df_burnout.loc["Usuário Intensivo", "Alto"]
             if "Usuário Intensivo" in df_burnout.index
